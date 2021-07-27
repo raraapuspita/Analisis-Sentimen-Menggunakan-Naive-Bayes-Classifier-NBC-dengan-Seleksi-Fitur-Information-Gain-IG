@@ -1,0 +1,49 @@
+-------------- Naive Bayes Classifier Tanpa Seleksi Fitur Information Gain------------
+start_time <- Sys.time()
+model = naiveBayes(matTrain, labelTrain, laplace = 1)
+pred = predict(model, matAll) 
+confusionMatrix(labelAll, pred)
+end_time <- Sys.time()
+
+
+waktu=end_time-start_time
+print(waktu)
+
+-------------- Naive Bayes Classifier Dengan Seleksi Fitur Information Gain------------
+
+#Information Gain
+m = create_matrix(df[,c("Komentar")]) 
+mat = as.matrix(m)
+coba<-data.frame(mat)
+View(coba)
+dfM = data.frame(mat, sentiment=df$Sentimen)
+IG_df<-Entropy_IG_df(dfM)
+View(IG_df)
+write.csv(IG_df, "Shopee_Information_Gain.csv")
+Pilih_Kolom<-IG_df$Column_Name[1:100]
+dfM_p<-dfM[Pilih_Kolom]
+
+#Membagi Data
+mtrain = dfM_p[index, ]
+mtest = dfM_p[-index, ]
+
+matTrain = as.matrix(mtrain)
+matTest = as.matrix(mtest)
+
+#Data utuh
+matAll=as.matrix(dfM_p)
+labelAll=as.factor(df[,6])
+
+#Pemodelan
+start_time <- Sys.time()
+model = naiveBayes(matTrain, labelTrain, laplace=0.5)
+pred = predict(model, matAll) 
+confusionMatrix(labelAll, pred)
+end_time <- Sys.time()
+
+waktu <- end_time - start_time
+print(waktu)
+
+df$Prediksi_NBIG<-pred
+View(df)
+write.csv(df, "Shopee_Prediksi_NBIG.csv")

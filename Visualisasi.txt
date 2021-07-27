@@ -1,0 +1,108 @@
+#---------------------------------Line Plot-------------------------------------
+df = read.csv("Shopee_Prediksi_NBIG.csv")
+df<-df[,2:dim(df)[2]]
+View(df)
+Tanggal<-unique(df$Tanggal)
+All_Tanggal<-rep(Tanggal, 2)
+
+Positif<-numeric()
+Negatif<-numeric()
+for (i in 1:length(Tanggal)){
+  Positif[i]<-dim(df[df$Prediksi_NBIG=="Positif" & df$Tanggal==Tanggal[i],])[1]
+  Negatif[i]<-dim(df[df$Prediksi_NBIG=="Negatif" & df$Tanggal==Tanggal[i],])[1]
+}
+sentimen_vec<-c(Positif, Negatif)
+
+Pos_Label<-rep("Positif", length(Tanggal))
+Neg_Label<-rep("Negatif", length(Tanggal))
+label_vec<-c(Pos_Label, Neg_Label)
+
+data_plot<-data.frame(Tanggal=All_Tanggal, 
+                      Jumlah_Sentimen=sentimen_vec, 
+                      Sentimen=label_vec)
+View(data_plot)
+
+# plot
+n<-length(Tanggal)
+ggplot(data_plot, aes(x=rep(1:n,2), y=Jumlah_Sentimen)) + 
+  geom_line(aes(colour=Sentimen))+
+  geom_point(aes(colour=Sentimen))+
+  ggtitle("Sentimen Mingguan Shopee")+
+  labs(y="Jumlah", x = "Tanggal")+
+  scale_x_discrete(name ="Tanggal", 
+                 limits=as.character(Tanggal))+
+  theme(axis.text.x = element_text(angle = 90))
+
+#---------------------------------Pie Plot-------------------------------------
+df = read.csv("Shopee_Prediksi_NBIG.csv")
+df<-df[,2:dim(df)[2]]
+View(df)
+##
+Positif <- filter(df, df$Prediksi_NBIG == "Positif")
+Negatif <- filter(df, df$Prediksi_NBIG == "Negatif")
+Jumlah_Positif <- dim(Positif)[1]
+Jumlah_Negatif <- dim(Negatif)[1]
+JumlahData=Jumlah_Positif+Jumlah_Negatif
+
+#Pie Chart
+Sentiment <- c(Jumlah_Positif, Jumlah_Negatif)
+persentase <- Sentiment*(1/JumlahData)*100
+labeldiagram <- c("Positif", "Negatif")
+labelsbaru <- paste(labeldiagram, Sentiment, "\n", persentase, "%")
+
+#
+pie(Sentiment,
+    labels = labelsbaru,
+    main="Diagram Lingkaran Sentimen Naive Bayes Information Gain", 
+    col = rainbow(length(Sentiment)),
+    fill = rainbow(length(Sentiment)))
+
+
+#-------------------------Plot Hasil Penelitian---------------------------------
+df <- read.csv("Shopee_Hasil_Penelitian.csv")
+df <- df[,2:dim(df)[2]]
+View(df)
+n=dim(df)[1]
+p<-ggplot(data=df) +
+  geom_bar(aes(x=1:n, y=waktu), stat="identity", fill = "grey")+
+  geom_line(aes(x=1:n, y=akurasi), size = 2, color = "blue")+
+  geom_point(aes(x=1:n, y=akurasi), size = 4, color = "blue")+
+  scale_y_continuous(name = "Waktu Komputasi(detik)", 
+                     sec.axis = sec_axis(~./1*100, name = "Akurasi (%)"))+
+  theme(
+    axis.title.y = element_text(color = "black"),
+    axis.title.y.right = element_text(color = "blue"))+
+  geom_text(aes(label=akurasi*100, x=1:n, 
+                y=akurasi*max(waktu)*1.6), colour="blue")+
+  geom_text(aes(label=waktu, x=1:n, y=waktu*0.95), colour="black")+
+  ggtitle("Akurasi Naive Bayes Information Gain")+
+  scale_x_discrete(name ="Jumlah Kata", 
+                   limits=as.character(df$jumlah_kata))
+p  
+
+#---------------------------------WordCloud-------------------------------------
+df <- read.csv("Shopee_Prediksi_NBIG.csv")
+df <- df[,2:dim(df)[2]]
+View(df)
+
+# Meinympan data dalam format corpus
+docs <- Corpus(VectorSource(df$Komentar))
+
+# Menghapus kata yang tidak diinginkan
+docs <- tm_map(docs, removeWords, c("banget","ngga", "deh", "pass","pas"))
+
+# Menghapus spasi tambahan
+docs <- tm_map(docs, stripWhitespace)
+
+# Mengubah data ke dalam matriks
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+head(d, 15)
+
+# Word Cloud
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=15, random.order=FALSE, rot.per=0.25, 
+          colors=brewer.pal(3, "Dark2"))

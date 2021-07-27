@@ -1,0 +1,65 @@
+----------- Membangun Fungsi Seleksi Fitur Information Gain---------
+#Menghitung Entropy
+nilai_entropy <- function(target) {
+  freq <- Tabel(target)/length(target)
+  # membuat vektor dari kategori
+  vec <- as.data.frame(freq)[,2]
+  log_2 <-numeric()
+  for (i in 1:length(vec)){
+    if(vec[i] == 0) {
+      log_2[i]=0
+    } else {
+      log_2[i]=log2(vec[i])
+    }
+  }
+  #hitung entropy
+  ent<- -sum(vec * log_2)
+  return(ent)
+}
+
+#Menghitung Information Gain
+Information_Gain<-function(faktor, target){
+  data<-data.frame(faktor=faktor, target=target)
+  d_data<-dcast(setDT(data), faktor~target, length)
+  d_data <- select(d_data, -c("faktor"))
+  SUM = rowSums(d_data)
+  d_data<-cbind(d_data,SUM)
+  d_data_iter<-select(d_data, -c("SUM"))
+  entropy_i<-numeric()
+  for (i in 1:dim(d_data)[1]){
+    variable_hitung<-as.data.frame(d_data_iter[i,])
+    variable_hitung<-as.numeric(variable_hitung)
+    variable_hitung<-data.frame(variable_hitung)
+    entropy_i[i]<-nilai_entropy(variable_hitung$variable_hitung)
+  }
+  ET<-nilai_entropy(target)
+  SUM_kanan<-sum(d_data$SUM)
+  vec_sum<-rep(SUM_kanan, dim(d_data)[1])
+  vec_faktor <- d_data$SUM/vec_sum
+  # membuat vektor dari kategori
+  IG <- ET-sum(vec_faktor*entropy_i)
+  return(IG)
+}
+
+#Menghitung Information Gain pada Dataset
+Entropy_IG_df <- function(df){
+  ig <- numeric()
+  kol=ncol(df)-1
+  for (i in 1:kol){
+    ig[i]<-Information_Gain(df[,i],df[,ncol(df)])
+  }
+  ig[ncol(df)]<-Information_Gain(df[,ncol(df)],df[,ncol(df)])
+  
+  E <- numeric()
+  kol2=ncol(df)
+  for (i in 1:kol2){
+    E[i]<-nilai_entropy(df[,i])
+  }
+  
+  Column_Name <- names(df)
+  Entropy <- E
+  IG <- ig
+  df_E <- data.frame(Column_Name, Entropy, IG)
+  df_E_sort <- df_E[order(-IG),]
+  return(df_E_sort)
+}

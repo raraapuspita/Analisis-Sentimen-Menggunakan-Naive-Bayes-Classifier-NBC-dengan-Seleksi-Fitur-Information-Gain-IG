@@ -1,0 +1,182 @@
+-----Install Packages----------
+#Impor Library
+library(tm)
+library(stringr)
+library(commentsclean)
+library(katadasaR)
+library(tokenizers)
+library(dplyr)
+library(tidyverse)
+library(data.Tabel)
+library(RTextTools)
+library(e1071)
+library(caret)
+library(wordcloud)
+library(ggpubr)
+
+-----------Pembersihan Data Shopee---------
+
+#Membuka Dataset
+tweets<-read.csv("Shopee idn.csv", sep=";", header=TRUE)
+
+#Menampilkan data
+View(tweets)
+
+#Melihat Tipe Data
+str(tweets)
+
+#Melihat Ukuran Data
+dim(tweets)
+
+#Memilih Data "Dates" dan "Comment"
+tweets<-tweets[c("dates","comments")]
+tweets_lama<-tweets[c("dates","comments")]
+View(tweets)
+
+#Mengkonversi data teks pada kolom "comments" sebagai "character"
+tweets$comments<-as.character(tweets$comments)
+str(tweets)
+
+#Mengkonversi data teks pada kolom "dates" sebagai "Dates"
+tweets$dates<-as.Date(tweets$dates, format="%d-%b-%y", replace=TRUE)
+str(tweets)
+
+#Mengurutkan data berdasarkan tanggal
+tweets<-tweets[order(tweets$dates),]
+row.names(tweets) <- NULL
+View(tweets)
+str(tweets)
+
+#Menghapus "enter" pada teks dengan gsub
+tweets$comments<- gsub( "\n"," ",tweets$comments)
+tweets$comments
+
+#Menghapus html, url, emoji
+tweets$comments <-replace_html(tweets$comments)
+tweets$comments <-replace_url(tweets$comments )
+tweets$comments <-replace_emoji(tweets$comments )
+tweets$comments
+
+#Menghapus tag dan mention
+tweets$comments <-replace_tag(tweets$comments , pattern= "@([A-Za-z0-9_]+)", replacement="")
+tweets$comments <-replace_hash(tweets$comments , pattern= "#([A-Za-z0-9_]+)", replacement="")
+tweets$comments <-replace_hash(tweets$comments , pattern= "<([A-Za-z0-9_]+)", replacement="")
+tweets$comments[1:5]
+
+#Mengubah karakter ke huruf kecil & menghapus tanda baca
+tweets$comments  <- strip(tweets$comments)
+tweets$comments[1:5]
+
+stemming <- function(x){
+  paste(lapply(x,katadasar),collapse = " ")}
+
+tweets$comments  <- lapply(tokenize_words(tweets$comments []), stemming)
+tweets$comments[1:5]
+
+# Konversi data menjadi Corpus(Beberapa fungsi hanya berjalan di Corpus)
+tweets_comments<- Corpus(VectorSource(tweets$comments ))
+
+# Mengakses kata-kata stopwords B Indonesia
+myStopwords = readLines("stopwords_id.csv")
+
+# Menghapus kata-kata stopwords B Indonesia
+tweets_comments  <- tm_map(tweets_comments , removeWords, myStopwords)
+
+# Menghapus kata-kata yang tidak diinginkan
+tweets_comments  <- tm_map(tweets_comments , removeWords, c("rt", "sih","gitu","kali", "gak","kalo","nya", "aja", "udah")) 
+
+# Menghapus spasi tambahan
+tweets_comments  <- tm_map(tweets_comments , stripWhitespace)
+
+#Membuat Dataframe
+clean_comments_df<-data.frame(comments=unlist(sapply(tweets_comments , `[`)), tanggal=tweets$dates, stringsAsFactors=F)
+
+#Menghapus data ganda
+clean_comments_df<-clean_comments_df[!duplicated(clean_comments_df$comments), ]
+View(clean_comments_df)
+
+write.csv(clean_comments_df, "Shopee_Clean.csv")
+
+---------Pembersihan Data Tokopedia----------
+
+#Membuka Dataset
+tweets<-read.csv("Tokopedia.csv", sep=";", header=TRUE)
+
+#Menampilkan data
+View(tweets)
+
+#Melihat Tipe Data
+str(tweets)
+
+#Melihat Ukuran Data
+dim(tweets)
+
+#Memilih Data "Dates" dan "Comment"
+tweets<-tweets[c("dates","comments")]
+tweets_lama<-tweets[c("dates","comments")]
+View(tweets)
+
+#Mengkonversi data teks pada kolom "comments" sebagai "character"
+tweets$comments<-as.character(tweets$comments)
+str(tweets)
+
+#Mengkonversi data teks pada kolom "dates" sebagai "Dates"
+tweets$dates<-as.Date(tweets$dates,format="%d-%b-%y", replace=TRUE)
+str(tweets)
+
+#Mengurutkan data berdasarkan tanggal
+tweets<-tweets[order(tweets$dates),]
+row.names(tweets) <- NULL
+View(tweets)
+str(tweets)
+
+#Menghapus "enter" pada teks dengan gsub
+tweets$comments<- gsub( "\n"," ",tweets$comments)
+tweets$comments
+
+#Menghapus html, url, emoji
+tweets$comments <-replace_html(tweets$comments)
+tweets$comments <-replace_url(tweets$comments )
+tweets$comments <-replace_emoji(tweets$comments )
+tweets$comments
+
+#Menghapus tag dan mention
+tweets$comments <-replace_tag(tweets$comments , pattern= "@([A-Za-z0-9_]+)", replacement="")
+tweets$comments <-replace_hash(tweets$comments , pattern= "#([A-Za-z0-9_]+)", replacement="")
+tweets$comments <-replace_hash(tweets$comments , pattern= "<([A-Za-z0-9_]+)", replacement="")
+tweets$comments[1:5]
+
+#Mengubah karakter ke huruf kecil & menghapus tanda baca
+tweets$comments  <- strip(tweets$comments)
+tweets$comments[1:5]
+
+stemming <- function(x){
+  paste(lapply(x,katadasar),collapse = " ")}
+
+tweets$comments  <- lapply(tokenize_words(tweets$comments []), stemming)
+tweets$comments[1:5]
+
+# Konversi data menjadi Corpus(Beberapa fungsi hanya berjalan di Corpus)
+tweets_comments<- Corpus(VectorSource(tweets$comments ))
+
+# Mengakses kata-kata stopwords B Indonesia
+myStopwords = readLines("stopwords_id.csv")
+
+# Menghapus kata-kata stopwords B Indonesia
+tweets_comments  <- tm_map(tweets_comments , removeWords, myStopwords)
+
+# Menghapus kata-kata yang tidak diinginkan
+tweets_comments  <- tm_map(tweets_comments , removeWords, c("rt", "sih","gitu","kali", "gak","kalo","nya", "aja", "udah")) 
+
+# Menghapus spasi tambahan
+tweets_comments  <- tm_map(tweets_comments , stripWhitespace)
+
+#Membuat Dataframe
+clean_comments_df<-data.frame(comments=unlist(sapply(tweets_comments , `[`)), tanggal=tweets$dates, stringsAsFactors=F)
+
+#Menghapus data ganda
+clean_comments_df<-clean_comments_df[!duplicated(clean_comments_df$comments), ]
+View(clean_comments_df)
+
+write.csv(clean_comments_df, "Tokopedia_Clean.csv")
+

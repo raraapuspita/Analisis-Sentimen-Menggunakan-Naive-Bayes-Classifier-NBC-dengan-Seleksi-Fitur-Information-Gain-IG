@@ -1,0 +1,161 @@
+----------- Pelabelan Sentiment Shopee----------------
+#Membuka dataset
+kalimat2<-read.csv("Shopee_Clean.csv",header=TRUE)
+kalimat2<-kalimat2[,2:dim(kalimat2)[2]]
+View(kalimat2)
+
+#Membuka database kata Positif & negatif
+positif <- scan("positive.txt",what="character",comment.char=";")
+negatif <- scan("negatif.txt",what="character",comment.char=";")
+kata.positif = c(positif)
+kata.negatif = c(negatif)
+
+#Menghitung Kata Positif
+score.sentiment = function(kalimat2, kata.positif, kata.negatif, .progress='none'){
+  require(plyr)
+  require(stringr)
+  scores = laply(kalimat2, function(kalimat, kata.positif, kata.negatif) {
+    kalimat = gsub('[[:punct:]]', '', kalimat)
+    kalimat = gsub('[[:cntrl:]]', '', kalimat)
+    kalimat = gsub('\\d+', '', kalimat)
+    kalimat = tolower(kalimat)
+    
+    list.kata = str_split(kalimat, '\\s+')
+    kata2 = unlist(list.kata)
+    positif.matches = match(kata2, kata.positif)
+    negatif.matches = match(kata2, kata.negatif)
+    positif.matches = !is.na(positif.matches)
+    negatif.matches = !is.na(negatif.matches)
+    score = sum(positif.matches)
+    return(score)
+  }, kata.positif, kata.negatif, .progress=.progress )
+  scores.df = data.frame(text=kalimat2, Kata.Positif=scores)
+  return(scores.df)
+}
+
+hasil_1 = score.sentiment(kalimat2$comments, kata.positif, kata.negatif)
+
+#Menghitung Kata Negatif
+score.sentiment = function(kalimat2, kata.positif, kata.negatif, .progress='none')
+{
+  require(plyr)
+  require(stringr)
+  scores = laply(kalimat2, function(kalimat, kata.positif, kata.negatif) {
+    kalimat = gsub('[[:punct:]]', '', kalimat)
+    kalimat = gsub('[[:cntrl:]]', '', kalimat)
+    kalimat = gsub('\\d+', '', kalimat)
+    kalimat = tolower(kalimat)
+    
+    list.kata = str_split(kalimat, '\\s+')
+    kata2 = unlist(list.kata)
+    positif.matches = match(kata2, kata.positif)
+    negatif.matches = match(kata2, kata.negatif)
+    positif.matches = !is.na(positif.matches)
+    negatif.matches = !is.na(negatif.matches)
+    score = sum(negatif.matches)
+    return(score)
+  }, kata.positif, kata.negatif, .progress=.progress )
+  scores.df = data.frame(text=kalimat2, Kata.Negatif=scores)
+  return(scores.df)
+}
+
+hasil_2 = score.sentiment(kalimat2$comments, kata.positif, kata.negatif)
+
+Hasil=data.frame(Tanggal=kalimat2$tanggal, 
+                 Komentar=kalimat2$comments, 
+                 Kata.Positif=hasil_1$Kata.Positif, 
+                 Kata.Negatif=hasil_2$Kata.Negatif)
+View(Hasil)  
+
+#Menghitung Summary
+Hasil$Summary <- Hasil$Kata.Positif - Hasil$Kata.Negatif
+Hasil$Summary
+View(Hasil) 
+
+# Menentukan Sentimen Kalimat
+Hasil$Sentimen <- ifelse(Hasil$Summary<0, "Negatif","Positif")
+Hasil$Sentimen
+View(Hasil)
+
+write.csv(Hasil, "Shopee_Label_Sentiment.csv")
+
+----------- Pelabelan Sentiment Tokopedia----------------
+#Membuka dataset
+kalimat2<-read.csv("Tokopedia_Clean.csv",header=TRUE)
+kalimat2<-kalimat2[,2:dim(kalimat2)[2]]
+View(kalimat2)
+
+#Membuka database kata Positif & negatif
+positif <- scan("positive.txt",what="character",comment.char=";")
+negatif <- scan("negatif.txt",what="character",comment.char=";")
+kata.positif = c(positif)
+kata.negatif = c(negatif)
+
+#Menghitung Kata Positif
+score.sentiment = function(kalimat2, kata.positif, kata.negatif, .progress='none'){
+  require(plyr)
+  require(stringr)
+  scores = laply(kalimat2, function(kalimat, kata.positif, kata.negatif) {
+    kalimat = gsub('[[:punct:]]', '', kalimat)
+    kalimat = gsub('[[:cntrl:]]', '', kalimat)
+    kalimat = gsub('\\d+', '', kalimat)
+    kalimat = tolower(kalimat)
+    
+    list.kata = str_split(kalimat, '\\s+')
+    kata2 = unlist(list.kata)
+    positif.matches = match(kata2, kata.positif)
+    negatif.matches = match(kata2, kata.negatif)
+    positif.matches = !is.na(positif.matches)
+    negatif.matches = !is.na(negatif.matches)
+    score = sum(positif.matches)
+    return(score)
+  }, kata.positif, kata.negatif, .progress=.progress )
+  scores.df = data.frame(text=kalimat2, Kata.Positif=scores)
+  return(scores.df)
+}
+
+hasil_1 = score.sentiment(kalimat2$comments, kata.positif, kata.negatif)
+
+#Menghitung Kata Negatif
+score.sentiment = function(kalimat2, kata.positif, kata.negatif, .progress='none')
+{
+  require(plyr)
+  require(stringr)
+  scores = laply(kalimat2, function(kalimat, kata.positif, kata.negatif) {
+    kalimat = gsub('[[:punct:]]', '', kalimat)
+    kalimat = gsub('[[:cntrl:]]', '', kalimat)
+    kalimat = gsub('\\d+', '', kalimat)
+    kalimat = tolower(kalimat)
+    
+    list.kata = str_split(kalimat, '\\s+')
+    kata2 = unlist(list.kata)
+    positif.matches = match(kata2, kata.positif)
+    negatif.matches = match(kata2, kata.negatif)
+    positif.matches = !is.na(positif.matches)
+    negatif.matches = !is.na(negatif.matches)
+    score = sum(negatif.matches)
+    return(score)
+  }, kata.positif, kata.negatif, .progress=.progress )
+  scores.df = data.frame(text=kalimat2, Kata.Negatif=scores)
+  return(scores.df)
+}
+
+hasil_2 = score.sentiment(kalimat2$comments, kata.positif, kata.negatif)
+
+Hasil=data.frame(Tanggal=kalimat2$tanggal, 
+                 Komentar=kalimat2$comments, 
+                 Kata.Positif=hasil_1$Kata.Positif, 
+                 Kata.Negatif=hasil_2$Kata.Negatif)
+View(Hasil)  
+
+#Menghitung Summary
+Hasil$Summary <- Hasil$Kata.Positif - Hasil$Kata.Negatif
+Hasil$Summary
+View(Hasil) 
+
+# Menentukan Sentimen Kalimat
+Hasil$Sentimen <- ifelse(Hasil$Summary<0, "Negatif","Positif")
+Hasil$Sentimen
+View(Hasil)
+
+write.csv(Hasil, "Tokopedia_Label_Sentiment.csv")
