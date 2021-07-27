@@ -1,0 +1,1 @@
+# Analisis-Sentimen-Menggunakan-Naive-Bayes-Classifier-NBC-dengan-Seleksi-Fitur-Information-Gain-IG
